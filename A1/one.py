@@ -1,5 +1,6 @@
 import random
 import time
+import math
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
@@ -14,7 +15,7 @@ def step(x):
     return 1
 
 
-def sigmoid(training_data, training_target):
+def sigmoid(x):
   return (1 / (1 + math.exp(-x)))
 
 def perceptron():
@@ -36,19 +37,38 @@ def perceptron():
         delta_weight = learning_rate * (target[i] - o) * t_set[j]
         weights[j-1] += delta_weight
 
-        if delta_weight != 0:
+        if delta_weight > 0.0000001:
           training_finished = False
       delta_bias = -learning_rate * (target[i] - o)
       bias += delta_bias
 
   return weights, bias
 
-def adaline(x):
+def adaline():
   training_data, target = get_data()
   weights = [random.uniform(-1, 1) for i in range(len(training_data[0]) - 1)]
   bias = training_data[0][0]
 
   training_finished = False
+
+  while not training_finished:
+    training_finished = True
+
+    for i, t_set in enumerate(training_data):
+      output = - bias
+      for j in range(1, len(t_set)):
+        output += t_set[j] * weights[j-1]
+      s = sigmoid(output)
+      for j in range(1, len(t_set)):
+        delta_weight = learning_rate * (target[i] - s) * (s*s * math.exp(-(output + bias))) * t_set[j]
+        weights[j-1] += delta_weight
+
+        if delta_weight > 0.0000001:
+          training_finished = False
+      delta_bias = -learning_rate * (target[i] - s)
+      bias += delta_bias
+
+  return weights, bias
 
 
 def graph():
@@ -68,11 +88,15 @@ def graph():
   points_z_c2 = [x[3] for x in C2]
 
   weights, bias = perceptron()
-  line_x, line_y, line_z = get_line_points(weights, bias)
+  l_x1, l_y1, l_z1 = get_line_points(weights, bias)
+
+  weights, bias = adaline()
+  l_x2, l_y2, l_z2 = get_line_points(weights, bias)
 
   ax.scatter(points_x_c1, points_y_c1, points_z_c1, c="b", marker="o", depthshade=False)
   ax.scatter(points_x_c2, points_y_c2, points_z_c2, c="r", marker="x", depthshade=False)
-  ax.plot(line_x,line_y,line_z, label='Perceptron')
+  ax.plot(l_x1,l_y1,l_z1, label='Perceptron')
+  ax.plot(l_x2,l_y2,l_z2, label='Adaline')
   ax.legend()
   plt.show()
 

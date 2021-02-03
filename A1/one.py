@@ -9,8 +9,8 @@ C2 = [[-1, 1.2,-1.7, 2.2] , [-1, -0.8,-2, 0.5], [-1, -0.5,-2.7,-1.2], [-1, 2.8, 
 learning_rate = 0.6
 
 def step(x):
-  if x < 0:
-    return -1
+  if x <= 0:
+    return 0
   else:
     return 1
 
@@ -20,8 +20,8 @@ def sigmoid(x):
 
 def perceptron():
   training_data, target = get_data()
-  weights = [random.uniform(-1, 1) for i in range(len(training_data[0]) - 1)]
-  bias = training_data[0][0]
+  weights = [0.5, 0.5, 0.5]
+  bias = 0.5
 
   training_finished = False
 
@@ -37,11 +37,10 @@ def perceptron():
         delta_weight = learning_rate * (target[i] - o) * t_set[j]
         weights[j-1] += delta_weight
 
-        if delta_weight > 0.0000001:
+        if delta_weight != 0:
           training_finished = False
       delta_bias = -learning_rate * (target[i] - o)
       bias += delta_bias
-
   return weights, bias
 
 def adaline():
@@ -95,6 +94,7 @@ def graph():
 
   ax.scatter(points_x_c1, points_y_c1, points_z_c1, c="b", marker="o", depthshade=False)
   ax.scatter(points_x_c2, points_y_c2, points_z_c2, c="r", marker="x", depthshade=False)
+  ax.scatter([-1.4], [-1.5], [2], c="b", marker="o", depthshade=False)
   ax.plot(l_x1,l_y1,l_z1, label='Perceptron')
   ax.plot(l_x2,l_y2,l_z2, label='Adaline')
   ax.legend()
@@ -111,9 +111,9 @@ def get_data():
   training_data = C1 + C2
   training_targets = []
   for _ in range(len(C1)):
-    training_targets.append(-1)
+    training_targets.append(0) #C1 is 0
   for _ in range(len(C2)):
-    training_targets.append(1)
+    training_targets.append(1) #C2 is 1
 
   return training_data, training_targets
 

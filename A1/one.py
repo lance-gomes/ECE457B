@@ -19,37 +19,8 @@ def step(x):
 def sigmoid(x):
   return (1 / (1 + math.exp(-x)))
 
-def perceptron():
-  training_data, target = get_data()
-  weights = [random.uniform(-1, 1) for i in range(len(training_data[0]) -1)]
-  bias = 1
-
-  training_finished = False
-
-  while not training_finished:
-    training_finished = True
-
-    for i, t_set in enumerate(training_data):
-      output = - bias
-      for j in range(1, len(t_set)):
-        output += t_set[j] * weights[j-1]
-      o = step(output)
-      for j in range(1, len(t_set)):
-        delta_weight = learning_rate * (target[i] - o) * t_set[j]
-        weights[j-1] += delta_weight
-
-        if delta_weight != 0:
-          training_finished = False
-      delta_bias = -learning_rate * (target[i] - o)
-      bias += delta_bias
-
-  print("Perceptron Weights : ", weights)
-  print("Perceptron Bias : ", bias)
-  print()
-  return weights, bias
-
-def adaline():
-  training_data, target = get_data()
+def perceptron(x):
+  training_data, target = x
   weights = [random.uniform(-1, 1) for i in range(len(training_data[0]))]
 
   training_finished = False
@@ -59,27 +30,51 @@ def adaline():
 
     for i, t_set in enumerate(training_data):
       output = 0
+
       for j in range(len(t_set)):
         output += t_set[j] * weights[j]
+      o = step(output)
+
+      for j in range(len(t_set)):
+        delta_weight = learning_rate * (target[i] - o) * t_set[j]
+        weights[j] += delta_weight
+
+        if delta_weight != 0:
+          training_finished = False
+
+  print("Perceptron Weights : ", weights)
+  return weights
+
+def adaline(x):
+  training_data, target = x
+  weights = [random.uniform(-1, 1) for i in range(len(training_data[0]))]
+
+  training_finished = False
+
+  while not training_finished:
+    training_finished = True
+
+    for i, t_set in enumerate(training_data):
+      output = 0
+
+      for j in range(len(t_set)):
+        output += t_set[j] * weights[j]
+
       s = sigmoid(output)
+
       for j in range(len(t_set)):
         delta_weight = learning_rate * (target[i] - s) * (s*s * math.exp(-output)) * t_set[j]
         weights[j] += delta_weight
 
-        if delta_weight > 0.0001:
+        if delta_weight > 0.000001:
           training_finished = False
+
   print()
   print("Adaline Weights: ", weights)
   return weights
 
 
 def graph():
-  fig = plt.figure()
-  ax = fig.add_subplot(111, projection='3d')
-  ax.set_xlabel('x')
-  ax.set_ylabel('y')
-  ax.set_zlabel('z')
-
   points_x_c1 = [x[1] for x in C1]
   points_x_c2 = [x[1] for x in C2]
 
@@ -89,27 +84,41 @@ def graph():
   points_z_c1 = [x[3] for x in C1]
   points_z_c2 = [x[3] for x in C2]
 
-  weights, bias = perceptron()
-  l_x1, l_y1, l_z1 = get_plane_points([1.617, -1.547, 0.13], 0.8)
-
-  # ax.plot_surface(l_x1, l_y1, l_z1)
-
-  weights = adaline()
-  bias = weights[0]
-  weights = [weights[1], weights[2], weights[3]]
-  l_x2, l_y2, l_z2 = get_plane_points([6.125793199706013, -10.104332623974337, 1.4374038548113548], 9.110282866658224)
-  ax.plot_surface(l_x2, l_y2, l_z2)
+  fig = plt.figure(0)
+  ax = fig.add_subplot(111, projection='3d')
+  ax.set_xlabel('x')
+  ax.set_ylabel('y')
+  ax.set_zlabel('z')
 
   ax.scatter(points_x_c1, points_y_c1, points_z_c1, c="b", marker="o", depthshade=False)
   ax.scatter(points_x_c2, points_y_c2, points_z_c2, c="r", marker="x", depthshade=False)
-  ax.scatter([-1.4], [-1.5], [2], c="b", marker="o", depthshade=False)
 
+  weights_perceptron = perceptron(get_data())
+  l_x1, l_y1, l_z1 = get_plane_points(weights_perceptron)
+  ax.plot_surface(l_x1, l_y1, l_z1)
   ax.legend()
+
+  fig2 = plt.figure(1)
+  ax2 = fig2.add_subplot(111, projection='3d')
+  ax2.set_xlabel('x')
+  ax2.set_ylabel('y')
+  ax2.set_zlabel('z')
+
+  ax2.scatter(points_x_c1, points_y_c1, points_z_c1, c="b", marker="o", depthshade=False)
+  ax2.scatter(points_x_c2, points_y_c2, points_z_c2, c="r", marker="x", depthshade=False)
+
+  weights_adaline = adaline(get_data())
+  l_x2, l_y2, l_z2 = get_plane_points(weights_adaline)
+  ax2.plot_surface(l_x2, l_y2, l_z2)
+
+  ax.scatter([-1.4], [-1.5], [2], c="g", marker="o", depthshade=False)
+  ax2.scatter([-1.4], [-1.5], [2], c="g", marker="o", depthshade=False)
+
   plt.show()
 
-def get_plane_points(weights, bias):
-  x, y = np.meshgrid(range(-2, 2), range(-2, 2))
-  z = (bias - weights[0]*x - weights[1]*y) *1. / weights[2]
+def get_plane_points(weights):
+  x, y = np.meshgrid(np.linspace(-3,3,100), np.linspace(-3,3,100))
+  z = (weights[0] - weights[1]*x - weights[2]*y) / weights[3]
 
   return x, y, z
 
